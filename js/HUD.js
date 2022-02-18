@@ -1,4 +1,4 @@
-
+import { config } from './Config.js';
 
 export class HUD {
 
@@ -11,6 +11,9 @@ export class HUD {
     _init()
     {
 
+    ////desktop only
+        if (!config.mobileAndTabletCheck())
+            document.getElementById("info-text").innerHTML = `<div>Use WASD to move, Q and E to tilt, right mouse button to aim and left mouse button to shoot.</div>`;
     //------------- UI 
 
         ////current weapon
