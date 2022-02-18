@@ -86,7 +86,8 @@ export class Controller {
     //// lock the pointer and update the first person control
 
         this.scene.input.on('pointerdown', () => {
-            this.scene.input.mouse.requestPointerLock();
+            if (this.shootButton !== null)
+                this.scene.input.mouse.requestPointerLock();
         })
         .on('pointermove', pointer => {
             if (this.scene.input.mouse.locked /* && this.joystick1 !== null */) 
