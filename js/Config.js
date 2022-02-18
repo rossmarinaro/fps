@@ -18,5 +18,5 @@ export const config = {
   }
   
   window.addEventListener('load', () => {
-    enable3d(() => new Phaser.Game(config)).withPhysics('https://rossmarinaro.github.io/wasm')
+    enable3d(() => new Phaser.Game(config)).withPhysics('https://rossmarinaro.github.io/fps/wasm')
   });
