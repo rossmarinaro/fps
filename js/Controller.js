@@ -14,11 +14,12 @@ export class Controller {
         this.rotation = 0;
         this.zoom = false;
         this.shoot = false;
+        this.isFiring = false
         this.joystick1 = null;
         this.joystick2 = null;
         this.shootButton = null;
         this.zoomButton = null;
-
+        
         this._init(); 
     }
     _init()                                    
@@ -26,6 +27,7 @@ export class Controller {
         if (config.mobileAndTabletCheck()) 
         {
             this.deviceCheck = true;
+            this.scene.input.addPointer(1);
             this.joystickBase1 = this.scene.add.circle(100, 450, 60, 0x000000).setAlpha(0.5);
             this.joystickThumb1 = this.scene.add.circle(100, 450, 40, 0xcccccc).setAlpha(0.5);
             this.joystick1 = this.scene.plugins.get('rexvirtualjoystickplugin').add(this.scene, {
@@ -48,46 +50,42 @@ export class Controller {
                 base: this.joystickBase2,
                 thumb: this.joystickThumb2
             });
-            this.shootButton = this.scene.add.circle(100, 550, 20, 0xcccccc).setAlpha(0.5)
+            this.shootButton = this.scene.add.circle(100, 550, 20, 0x000000).setAlpha(0.5)
                 .setInteractive()
                 .on('pointerdown', ()=> this.shoot = true)
                 .on('pointerup', ()=> this.shoot = false)
                 .on('pointerout', ()=> this.shoot = false);
-            this.zoomButton = this.scene.add.circle(this.scene.scale.width - 100, 550, 20, 0xcccccc).setAlpha(0.5)
+            this.zoomButton = this.scene.add.circle(this.scene.scale.width - 100, 550, 20, 0x000000).setAlpha(0.5)
                 .setInteractive()
                 .on('pointerdown', ()=> this.zoom = true)
                 .on('pointerup', ()=> this.zoom = false)
                 .on('pointerout', ()=> this.zoom = false);
-      
         }
         else ////keyboard
-            {
-                this.deviceCheck = false;
-                this.keys = {
-                    w: this.scene.input.keyboard.addKey('w'),
-                    a: this.scene.input.keyboard.addKey('a'),
-                    s: this.scene.input.keyboard.addKey('s'),
-                    d: this.scene.input.keyboard.addKey('d'),
-                    q: this.scene.input.keyboard.addKey('q'),
-                    e: this.scene.input.keyboard.addKey('e')
-                }
+        {
+            this.deviceCheck = false;
+            this.keys = {
+                w: this.scene.input.keyboard.addKey('w'),
+                a: this.scene.input.keyboard.addKey('a'),
+                s: this.scene.input.keyboard.addKey('s'),
+                d: this.scene.input.keyboard.addKey('d'),
+                q: this.scene.input.keyboard.addKey('q'),
+                e: this.scene.input.keyboard.addKey('e')
             }
+        //// lock the pointer and update the first person control
+
+            this.scene.input
+            .on('pointerdown', () => this.scene.input.mouse.requestPointerLock())
+            .on('pointermove', pointer => {
+                if (this.scene.input.mouse.locked) 
+                    this.firstPersonControls.update(pointer.movementX, pointer.movementY); 
+            });
+        }
 
    
     //// add first person controls
 
         this.firstPersonControls = new FirstPersonControls(this.scene.third.camera, this.player.object, {});
-
-    //// lock the pointer and update the first person control
-
-        this.scene.input.on('pointerdown', () => {
-            if (this.shootButton === null)
-                this.scene.input.mouse.requestPointerLock();
-        })
-        .on('pointermove', pointer => {
-            if (this.scene.input.mouse.locked /* && this.joystick1 !== null */) 
-                this.firstPersonControls.update(pointer.movementX, pointer.movementY); 
-        });
 
         
     //------------ on scene update
@@ -103,6 +101,8 @@ export class Controller {
         ////update depending on device
             this.deviceCheck === true ? this.dumpJoyStickState(time) : this.dumpKeyState(time);
 
+            if (this.shoot === false)
+                config.audio.stop('automac1000_shot', this.scene);
         });
     }
 
@@ -134,18 +134,48 @@ export class Controller {
     }
     fireWeapon()
     {
-        const x = 0,
-            y = 0,
-            force = 5,
-            pos = new THREE.Vector3(),
+        if (this.isFiring === true)
+            return;
+        this.isFiring = true;
+        config.audio.play('automac1000_shot', 2, false, this.scene, 0);
+        this.scene.time.delayedCall(250, ()=> this.isFiring = false);
+
+        if (this.deviceCheck === true)
+        {
+            const 
+                x = 0.2,
+                y = -0.17,
+                force = 5,
+                pos = new THREE.Vector3(),
             raycaster = new THREE.Raycaster();
             raycaster.setFromCamera({ x, y }, this.scene.third.camera);
-        pos.copy(raycaster.ray.direction);
-        pos.add(raycaster.ray.origin);
-        const sphere = this.scene.third.physics.add.sphere({ radius: 0.05, x: pos.x, y: pos.y, z: pos.z, mass: 1, bufferGeometry: true }, { phong: { color: 0x000000 } });
-        pos.copy(raycaster.ray.direction);
-        pos.multiplyScalar(24);
-        sphere.body.applyForce(pos.x * force, pos.y * force, pos.z * force);
+            pos.copy(raycaster.ray.direction);
+            pos.add(raycaster.ray.origin);
+            const sphere = this.scene.third.physics.add.sphere(
+                { radius: 0.05, x: pos.x - 0.12, y: pos.y - 0.1, z: pos.z + 0.5, mass: 0.2, bufferGeometry: true }, 
+                { phong: { color: 0xFCEF03 } }
+            );
+            pos.copy(raycaster.ray.direction);
+            pos.multiplyScalar(24);
+            sphere.body.applyForce(pos.x + 0.35 * force, pos.y + 0.5 * force, pos.z);
+        }
+        else
+        {
+            const x = 0,
+                y = 0,
+                force = 5,
+                pos = new THREE.Vector3(),
+                raycaster = new THREE.Raycaster();console.log(pos)
+                raycaster.setFromCamera({ x, y }, this.scene.third.camera);
+            pos.copy(raycaster.ray.direction);
+            pos.add(raycaster.ray.origin);
+            const sphere = this.scene.third.physics.add.sphere({ radius: 0.05, x: pos.x, y: pos.y, z: -0.5/* pos.z */, mass: 1, bufferGeometry: true }, { phong: { color: 0xFCEF03 } });
+            pos.copy(raycaster.ray.direction);
+            pos.multiplyScalar(24);
+            sphere.body.applyForce(pos.x * force, pos.y * force, pos.z * force);
+        }
+
+        
     }
     moveRight()
     {
@@ -226,11 +256,12 @@ export class Controller {
                 this.moveDown();       
         }
         if (this.joystick2 !== null)
-            this.firstPersonControls.update(this.joystick2.forceX, this.joystick2.forceY); 
+            this.firstPersonControls.update(this.joystick2.forceX  / 5, this.joystick2.forceY / 5); 
 
-        this.zoom ? this.zoomWeapon() : this.defaultStance(time);
+        this.zoom ? 
+            this.zoomWeapon() : this.defaultStance(time);
 
-        if (this.shoot)
+        if (this.shoot) 
             this.fireWeapon();
     }
 }

@@ -1,4 +1,4 @@
-
+//import { Audio } from './Audio.js';
 import Preload from './Preload.js'
 import Main from './Main.js';
 
@@ -15,6 +15,27 @@ export const config = {
     },
     scene: [Preload, Main],
     ...Canvas({ antialias: true }),
+    audio: {
+      noAudio: false,
+      default: false,
+      sound: null,
+      cached: [],
+      play: (src, vol, loop, scene, detune) =>{
+          config.audio.cached.push(src);
+          config.audio.cached.filter(e => { 
+          config.audio.sound = scene.sound.add(src).setLoop(loop).setVolume(vol).setDetune(detune);
+      //if sound is already in cache, remove it
+              if (e.toString() === src) 
+                  config.audio.cached.pop(src);
+              config.audio.sound.play();  
+          });
+      },
+      stop: (src, scene) =>{ 
+          for (let snd of scene.sound.sounds) 
+              if (snd.key == src) 
+                  snd.stop();
+      }
+    },//new Audio(),
     mobileAndTabletCheck: function () 
     {
       let check = false;
@@ -26,5 +47,5 @@ export const config = {
   }
   
   window.addEventListener('load', () => {
-    enable3d(() => new Phaser.Game(config)).withPhysics('https://rossmarinaro.github.io/fps/wasm')
+    enable3d(() => new Phaser.Game(config)).withPhysics('../wasm')
   });
