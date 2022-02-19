@@ -19,7 +19,7 @@ export class Controller {
         this.shootButton = null;
         this.zoomButton = null;
 
-        this._initrot(); 
+        this._init(); 
     }
     _init()                                    
     {
