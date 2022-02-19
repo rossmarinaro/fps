@@ -12,13 +12,14 @@ export class Controller {
         this.theta = 0;
         this.direction = 0;
         this.rotation = 0;
-        this.zoom = null;
+        this.zoom = false;
         this.shoot = false;
         this.joystick1 = null;
         this.joystick2 = null;
         this.shootButton = null;
+        this.zoomButton = null;
 
-        this._init(); 
+        this._initrot(); 
     }
     _init()                                    
     {
@@ -47,17 +48,21 @@ export class Controller {
                 base: this.joystickBase2,
                 thumb: this.joystickThumb2
             });
-            this.shootButton = this.scene.add.circle(100, 550, 20, 0xcccccc)
-            .setInteractive()
-            .on('pointerdown', ()=> this.shoot = true)
-            .on('pointerup', ()=> this.shoot = false)
-            .on('pointerout', ()=> this.shoot = false);
+            this.shootButton = this.scene.add.circle(100, 550, 20, 0xcccccc).setAlpha(0.5)
+                .setInteractive()
+                .on('pointerdown', ()=> this.shoot = true)
+                .on('pointerup', ()=> this.shoot = false)
+                .on('pointerout', ()=> this.shoot = false);
+            this.zoomButton = this.scene.add.circle(this.scene.scale.width - 100, 550, 20, 0xcccccc).setAlpha(0.5)
+                .setInteractive()
+                .on('pointerdown', ()=> this.zoom = true)
+                .on('pointerup', ()=> this.zoom = false)
+                .on('pointerout', ()=> this.zoom = false);
+      
         }
         else ////keyboard
             {
                 this.deviceCheck = false;
-                this.zoom = this.scene.input.mousePointer.rightButtonDown();
-                this.shoot = this.scene.input.mousePointer.leftButtonDown();
                 this.keys = {
                     w: this.scene.input.keyboard.addKey('w'),
                     a: this.scene.input.keyboard.addKey('a'),
@@ -96,11 +101,37 @@ export class Controller {
             this.theta = Math.atan2(this.rotation.x, this.rotation.z);
 
         ////update depending on device
-            this.deviceCheck === true ? this.dumpJoyStickState() : this.dumpKeyState(time);
+            this.deviceCheck === true ? this.dumpJoyStickState(time) : this.dumpKeyState(time);
 
         });
     }
-//---------------------------- actions
+
+//---------------------------- METHODS
+
+    defaultStance(time)
+    {
+        this.steady = ()=>{
+            this.player.movement.x = Math.sin(time * -0.015) * 0.075;
+            this.player.movement.y = Math.sin(time * 0.015) * 0.075;
+            this.player.movement.z = Math.sin(time * 0.015) * 0.075;
+        }
+        this.trot = ()=>{
+            this.player.movement.x = Math.sin(time * -0.003) * 0.01;
+            this.player.movement.y = Math.sin(time * 0.003) * 0.01;
+            this.player.movement.z = Math.sin(time * 0.003) * 0.01;
+        }
+        if (this.keys !== undefined) 
+            this.keys.w.isDown ? this.steady() : this.trot();
+        else 
+            this.joystick1.forceY < -40 ? this.steady() : this.trot();
+    }
+    zoomWeapon()
+    {
+        //this.crossHairs.alpha = 0
+        this.player.movement.x = THREE.MathUtils.lerp(this.player.movement.x, 0.6, 0.2);
+        this.player.movement.y = THREE.MathUtils.lerp(this.player.movement.y, -0.8 + 1.8, 0.2);
+        this.player.movement.z = THREE.MathUtils.lerp(this.player.movement.z, -0.45, 0.2);
+    }
     fireWeapon()
     {
         const x = 0,
@@ -141,6 +172,9 @@ export class Controller {
 
     dumpKeyState(time)
     {
+        this.zoom = this.scene.input.mousePointer.rightButtonDown();
+        this.shoot = this.scene.input.mousePointer.leftButtonDown();
+        
         if (this.keys.q.isDown) 
         {
           this.scene.third.camera.rotateZ(0.2);
@@ -158,25 +192,7 @@ export class Controller {
         }
 
     //// the rifle movement
-        if (this.zoom) 
-        {
-            //this.crossHairs.alpha = 0
-            this.player.movement.x = THREE.MathUtils.lerp(this.player.movement.x, 0.6, 0.2)
-            this.player.movement.y = THREE.MathUtils.lerp(this.player.movement.y, -0.8 + 1.8, 0.2)
-            this.player.movement.z = THREE.MathUtils.lerp(this.player.movement.z, -0.45, 0.2)
-        } 
-        else if (this.keys.w.isDown) 
-        {
-            this.player.movement.x = Math.sin(time * -0.015) * 0.075
-            this.player.movement.y = Math.sin(time * 0.015) * 0.075
-            this.player.movement.z = Math.sin(time * 0.015) * 0.075
-        } 
-        else
-        {
-            this.player.movement.x = Math.sin(time * -0.003) * 0.01
-            this.player.movement.y = Math.sin(time * 0.003) * 0.01
-            this.player.movement.z = Math.sin(time * 0.003) * 0.01
-        }
+        this.zoom ? this.zoomWeapon() : this.defaultStance(time);
 
     //// move forwards and backwards
         if (this.keys.w.isDown) 
@@ -196,7 +212,7 @@ export class Controller {
 
     //--------------------------- joysticks 
 
-    dumpJoyStickState()   
+    dumpJoyStickState(time)   
     {
         if (this.joystick1 !== null)
         {
@@ -211,6 +227,9 @@ export class Controller {
         }
         if (this.joystick2 !== null)
             this.firstPersonControls.update(this.joystick2.forceX, this.joystick2.forceY); 
+
+        this.zoom ? this.zoomWeapon() : this.defaultStance(time);
+
         if (this.shoot)
             this.fireWeapon();
     }
