@@ -1,5 +1,5 @@
 import { config } from './Config.js';
-
+const { FirstPersonControls, THREE } = ENABLE3D;
 export class HUD {
 
     constructor(scene)
@@ -20,11 +20,19 @@ export class HUD {
         //this.scene.add.sprite(200, 200, 'automac1000_thumbnail').setAlpha(0.3);
       //this.add.graphics({fillStyle: {color: 0xB50003, alpha: 0.2}}).fillRoundedRect(10, 5, 340, 170, 20);
 
-        this.crossHairs = this.scene.add.circle(this.scene.cameras.main.width / 2, this.scene.cameras.main.height / 2, 4, 0xff0000);
-        this.crossHairs.depth = 1;
+        this.crossHairs = {
+            _1: this.scene.add.rectangle(this.scene.cameras.main.width / 2, this.scene.cameras.main.height / 2, 50, 2, 0x000000),
+            _2: this.scene.add.rectangle(this.scene.cameras.main.width / 2, this.scene.cameras.main.height / 2, 2, 50, 0x000000)
+        }
+        //this.scene.add.circle(this.scene.cameras.main.width / 2, this.scene.cameras.main.height / 2, 4, 0xff0000);
+        //this.crossHairs.depth = 1;
 
     //----------- on scene update
+    
+        this.scene.events.on('update', ()=> {
+            this.crossHairs.alpha = 1;
 
-        this.scene.events.on('update', ()=> this.crossHairs.alpha = 1);
+
+        });
     }
 }

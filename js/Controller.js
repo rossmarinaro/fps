@@ -82,6 +82,9 @@ export class Controller {
             });
         }
 
+        this.muzzleFlashParticles = this.scene.add.particles('particles', 'fr08').setDepth(100);
+        this.muzzleFlash = this.muzzleFlashParticles.createEmitter({ speed: 100, scale: { start: 1, end: 0 }, x: -1000, y: -1000, lifespan: 1000, blendMode: 'ADD' }).setAlpha(0.95);
+
    
     //// add first person controls
 
@@ -134,48 +137,37 @@ export class Controller {
     }
     fireWeapon()
     {
+
         if (this.isFiring === true)
             return;
+
         this.isFiring = true;
+
         config.audio.play('automac1000_shot', 2, false, this.scene, 0);
         this.scene.time.delayedCall(250, ()=> this.isFiring = false);
-
-        if (this.deviceCheck === true)
-        {
-            const 
-                x = 0.2,
-                y = -0.17,
-                force = 5,
-                pos = new THREE.Vector3(),
+      
+        const x = 0,
+            y = 0,
+            force = 5,
+            pos = new THREE.Vector3(),
             raycaster = new THREE.Raycaster();
             raycaster.setFromCamera({ x, y }, this.scene.third.camera);
-            pos.copy(raycaster.ray.direction);
-            pos.add(raycaster.ray.origin);
-            const sphere = this.scene.third.physics.add.sphere(
-                { radius: 0.05, x: pos.x - 0.12, y: pos.y - 0.1, z: pos.z + 0.5, mass: 0.2, bufferGeometry: true }, 
-                { phong: { color: 0xFCEF03 } }
-            );
-            pos.copy(raycaster.ray.direction);
-            pos.multiplyScalar(24);
-            sphere.body.applyForce(pos.x + 0.35 * force, pos.y + 0.5 * force, pos.z);
-        }
-        else
-        {
-            const x = 0,
-                y = 0,
-                force = 5,
-                pos = new THREE.Vector3(),
-                raycaster = new THREE.Raycaster();console.log(pos)
-                raycaster.setFromCamera({ x, y }, this.scene.third.camera);
-            pos.copy(raycaster.ray.direction);
-            pos.add(raycaster.ray.origin);
-            const sphere = this.scene.third.physics.add.sphere({ radius: 0.05, x: pos.x, y: pos.y, z: -0.5/* pos.z */, mass: 1, bufferGeometry: true }, { phong: { color: 0xFCEF03 } });
-            pos.copy(raycaster.ray.direction);
-            pos.multiplyScalar(24);
-            sphere.body.applyForce(pos.x * force, pos.y * force, pos.z * force);
-        }
+        pos.copy(raycaster.ray.direction);
 
-        
+        pos.add(raycaster.ray.origin);
+        const bullet = this.scene.third.physics.add.sphere({ radius: 0.1, /* x: this.scene.player.muzzlePoint.position.x, y: this.scene.player.muzzlePoint.position.y, z: this.scene.player.muzzlePoint.position.z */  x: pos.x, y: pos.y, z: pos.z, mass: 1, bufferGeometry: true }, { phong: { color: 0xFCEF03 } });
+        pos.copy(raycaster.ray.direction);
+        pos.multiplyScalar(24);
+        bullet.body.applyForce(pos.x * force, pos.y * force, pos.z * force);
+
+        //const ballBody = createRigidBody( ball, ballShape, ballMass, pos, quat );
+        //ballBody.setFriction( 0.5 );
+
+  
+        //ballBody.setLinearVelocity( new THREE.Vector3( pos.x, pos.y, pos.z ) );
+
+        //this.muzzleFlash.emitParticle(5, 310, 400);
+        //this.muzzleFlash.explode(-1);
     }
     moveRight()
     {
