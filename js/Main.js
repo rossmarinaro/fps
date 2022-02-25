@@ -4,7 +4,8 @@ import { HUD } from './HUD.js';
 import { Controller } from './Controller.js';               
 import { Player } from './Player.js';
 
-const { Scene3D, ExtendedObject3D } = ENABLE3D;
+// import * as THREE from './plugins/enable3d_framework';
+const { Scene3D, ExtendedObject3D, THREE } = ENABLE3D;
 
 
 export default class Main extends Scene3D {
@@ -14,10 +15,19 @@ export default class Main extends Scene3D {
    
   create()
   {
+      console.log(this)
       this.accessThirdDimension({ maxSubSteps: 10, fixedTimeStep: 1 / 180 });
       this.third.warpSpeed('-orbitControls');
       this.third.haveSomeFun(50);
       this.third.renderer.gammaFactor = 1.5;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xff0000);
+      scene.fog = new THREE.Fog(0x00000, 250, 1400);
+      const dirlight = new THREE.DirectionalLight(0xffff00, 0.5);
+      dirlight.position.set(0, 0, 1).normalize();
+      scene.add(dirlight);
+
 
       this.player = new Player(this);
       this.hud = new HUD(this);
@@ -45,6 +55,9 @@ export default class Main extends Scene3D {
           }
         });
       });
+
+
+
   }
 }
 

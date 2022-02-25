@@ -1,5 +1,5 @@
 import { config } from './Config.js';
-const { FirstPersonControls, THREE } = ENABLE3D;
+const { FirstPersonControls, THREE           ,ExtendedObject3D} = ENABLE3D;
 
 
 export class Controller {
@@ -155,11 +155,39 @@ export class Controller {
         pos.copy(raycaster.ray.direction);
 
         pos.add(raycaster.ray.origin);
+    
         const bullet = this.scene.third.physics.add.sphere({ radius: 0.1, /* x: this.scene.player.muzzlePoint.position.x, y: this.scene.player.muzzlePoint.position.y, z: this.scene.player.muzzlePoint.position.z */  x: pos.x, y: pos.y, z: pos.z, mass: 1, bufferGeometry: true }, { phong: { color: 0xFCEF03 } });
         pos.copy(raycaster.ray.direction);
         pos.multiplyScalar(24);
         bullet.body.applyForce(pos.x * force, pos.y * force, pos.z * force);
 
+
+            //const bullet = this.scene.third.physics.add.sphere({ radius: 0.1, x: pos.x, y: pos.y, z: pos.z, mass: 1, bufferGeometry: true }, { phong: { color: 0xFCEF03 } });
+            //this.scene.third.load.gltf('assets/macaroni.glb').then(object => {
+            //     const bullet = object.scene
+            //     this.bullet = new ExtendedObject3D();
+            //     this.bullet.name = 'bullet';
+            //     this.bullet.add(bullet);
+            //     this.scene.third.add.existing(this.bullet);
+            //     pos.copy(raycaster.ray.direction);
+            //     pos.multiplyScalar(24);
+            //     //this.scene.third.physics.add.existing(this.bullet, { shape: 'sphere', radius: 1, z: this.bullet.position.x, y: this.bullet.position.y });
+            //     //this.bullet.body.setCollisionFlags(0);
+            //    // bullet.body.applyForce(pos.x * force, pos.y * force, pos.z * force);
+            //     this.bullet.traverse(child => {
+            //       if (child.isMesh) 
+            //       {
+            //         child.castShadow = child.receiveShadow = true;
+            //         if (child.material) 
+            //         {
+                       
+                    
+                
+        
+            //         }
+            //       }
+            //     });
+           // });
         //const ballBody = createRigidBody( ball, ballShape, ballMass, pos, quat );
         //ballBody.setFriction( 0.5 );
 
